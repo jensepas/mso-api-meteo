@@ -4,7 +4,7 @@ require_once('vendor/autoload.php');
 
 
 $index = 'meteo';
-$apiKey = 'AZERTYUEEEEE';
+$apiKey = 'AZERTYU';
 $response = [];
 
 function randomDateInRange(DateTime $start, DateTime $end)
