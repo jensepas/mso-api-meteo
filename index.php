@@ -19,12 +19,12 @@ $returnData = ["error" => "0", "message" => ""];
 
 $params = sanitize();
 
-$apiKey = ['panorama', 'panoramaa', 'AZERTYU'];
 //check de la methode post, get, put, delete
 
 $className = explode("/", trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), "/"));
 
-if (count($className) >= 2 && in_array($className[1], $apiKey)) {
+
+if (count($className) >= 1) {
     //check de la methode post, get, put, delete
     $className = "api\\" . $className[0];
     $do = new $className;
@@ -36,14 +36,10 @@ if (count($className) >= 2 && in_array($className[1], $apiKey)) {
     if (method_exists($className, $methodName)) {
         $returnData = $do->{$methodName}($params);
     }
-} else if (isset($className[2]) && $apiKey !== $className[2]) {
-    $returnData["error"] = "ERROR_00100";
-    $returnData["message"] = "apiKey invalide";
 } else {
     $returnData["error"] = "ERROR_00200";
     $returnData["message"] = "La méthode n'existe pas";
 }
-
 
 // on encode la sortie en json
 header("Content-Type: application/json; charset=utf-8");

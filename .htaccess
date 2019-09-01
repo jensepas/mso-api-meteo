@@ -1,5 +1,2 @@
 RewriteEngine on
-RewriteBase /
-
-
 RewriteRule ^(.*) index.php?%{QUERY_STRING} [L]

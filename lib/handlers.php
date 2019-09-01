@@ -6,7 +6,6 @@
  * @location /lib/handlers.php
  */
 
-
 spl_autoload_register(function ($className): bool {
     $className = str_replace('\\', DIRECTORY_SEPARATOR, $className);
     $file = DIR_ROOT . "/{$className}.php";

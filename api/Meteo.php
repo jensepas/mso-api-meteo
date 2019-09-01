@@ -7,140 +7,149 @@
  * PHP 7.0
  *
  *
- * @location /api/Meteo.php
+ * @location /api/meteo.php
  */
 
 namespace api;
 
-use lib\Bigbrother as bb;
+use lib\BigBrother;
 use Elasticsearch;
 
-class Meteo extends bb
+class Meteo extends BigBrother
 {
     //default return array
     public $return = ["error" => "0", "message" => ""];
 
+    /**
+     * @param $params
+     * @return array
+     * @throws \Exception
+     */
     public function data_get($params): array
     {
-
         if ($this->check($params)) {
-            $esclient = Elasticsearch\ClientBuilder::create()
+            //if ($this->checkApiKey($params)) {
+
+
+            $esClient = Elasticsearch\ClientBuilder::create()
                 ->setHosts(["localhost:9200"])
                 ->build();
 
-            $paramsRequest = [
-                'index' => 'meteo'
-            ];
-            $paramsRequest['body'] = [
-                'size' => 0,
-                'aggs' => [
-                    'by_libelle' => [
-                        'terms' => [
-                            'field' => 'libelle'
-                        ],
-                        'aggs' => [
-                            'by_date' => [
-                                'date_histogram' => [
-                                    'field' => 'date',
-                                    'interval' => '120m',
-                                    'format' => 'epoch_millis'
-                                ],
-                                'aggs' => [
-                                    'tops' => [
-                                        'top_hits' => [
-                                            'sort' => [
-                                                'date' => [
-                                                    'order' => 'asc'
-                                                ]
-                                            ],
-                                            '_source' => [],
-                                            'size' => 100
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ];
+            $paramsRequest['index'] = 'air_measurements';
 
-            if (isset($params['date'])) {
-                $end = new \DateTime(date('Y-m-d H:i:s'));
-
-                $paramsRequest['body']['query'] = [
-                    'bool' => [
-                        'filter' => [
-                            'range' => [
-                                'date' => [
-                                    'gte' => $params['date'],
-                                    'lte' => $end->getTimestamp(),
-                                    'format' => 'epoch_millis'
-                                ]
-                            ]
-                        ]
-                    ]
-                ];
+            if (!empty($params['apikey'])) {
+                $paramsRequest['body']['query']['bool']['must'][]['term']['apiKey'] = $params['apikey'];
             }
-            $retour = [];
+            //$paramsRequest['body']['aggs']['sale_date']['date_histogram']['field'] = 'date';
+            //$paramsRequest['body']['aggs']['sale_date']['date_histogram']['interval'] = 100;
+            //$paramsRequest['body']['aggs']['sale_date']['histogram']['minimum_interval'] = "minute";
+            //$paramsRequest['body']['aggs']['sale_date']['histogram']['format'] = 'epoch_millis';
 
-            foreach ($esclient->search($paramsRequest)['aggregations']['by_libelle']['buckets'] as
-                     $hitss) {
-
-                foreach ($hitss['by_date']['buckets'] as $hits) {
-
-                    //print_r($hits);
-                    foreach ($hits['tops']['hits']['hits'] as $hit) {
-
-                        $retour[$hit['_source']['libelle']][] = $hit['_source'];
-                    }
-                }
+            if (!empty($params['sensor'])) {
+                $paramsRequest['body']['query']['bool']['must'][]['term']['measurement.label'] = $params['sensor'];
             }
-            $this->return["message"] = $retour;
+
+            $end = new \DateTime(date('Y-m-d H:i:s'));
+            $endDate = $end->getTimestamp();
+
+            if (!empty($params['end'])) {
+                $endDate = $params['end'];
+            }
+
+            $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['lte'] = $endDate;
+
+
+            if (!empty($params['start'])) {
+                $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['gte'] = $params['start'];
+            }
+
+
+            $paramsRequest['body']['sort']['timestamp']['order'] = 'desc';
+            $size = !empty($params['size']) ? $params['size'] : 10000;
+            $paramsRequest['body']['size'] = $size;
+
+            $return = [];
+            $esReturn = $esClient->search($paramsRequest);
+
+            foreach ($esReturn['hits']['hits'] as $hit) {
+                $return[] = $hit['_source'];
+            }
+
+            usort($return, function ($a1, $a2) {
+                return $a1['timestamp'] - $a2['timestamp'];
+            });
+
+            $this->return["message"] = $return;
+            //  } else {
+            //     $this->return["error"] = "ERROR_00015";
+            //     $this->return["message"] = "Invalid API key";
+            // }
+
         } else {
             $this->return["error"] = "ERROR_00025";
             $this->return["message"] = "Empty data, not added";
         }
-
         return $this->return;
     }
 
+    /**
+     * @param array $params
+     * @return array
+     * @throws \Exception
+     */
     public function data_post($params = []): array
     {
         if (!empty($params)) {
-            $index = 'meteo';
-            $date = new \DateTime(date("Y-m-d H:i:s", time()));
-            $theDate = $date->getTimestamp();
 
-            $client = Elasticsearch\ClientBuilder::create()
-                ->setHosts(["localhost:9200"])
-                ->build();
+            if ($this->checkApiKey($params[0])) {
+                $index = 'air_measurements';
 
-            $apiKey = 'AZERTYU';
-            $jsonElastic = [
-                'body' => []
-            ];
 
-            foreach ($params as $param) {
-                $jsonElastic['body'][] = [
-                    'index' => [
-                        '_index' => $index
-                    ]
+
+                $date = new \DateTime(date("Y-m-d H:i:s", time()));
+                $theDate = $date->getTimestamp();
+
+                $esClient = Elasticsearch\ClientBuilder::create()
+                    ->setHosts(["127.0.0.1:9200"])
+                    ->build();
+
+                $apiKey = $params[0]['apikey'];
+                $location = $params[1]['location'];
+                $jsonElastic = [
+                    'body' => []
                 ];
 
-                $jsonElastic['body'][] = [
-                    'apiKey' => $apiKey,
-                    'date' => $theDate,
-                    'libelle' => $param['device'],
-                    'value' => $param['values'],
-                    'unity' => $param['unity']
-                ];
+                foreach ($params[2]['sensors'] as $param) {
+                    $jsonElastic['body'][] = [
+                        'index' => [
+                            '_index' => $index
+                        ]
+                    ];
 
+                    $jsonElastic['body'][] = [
+                        'apiKey' => $apiKey,
+                        'location' => $location,
+                        'timestamp' => $theDate,
+                        'measurement.label' => $param['device'],
+                        'measurement.value' => $param['values'],
+                        'measurement.unit' => $param['unity']
+                    ];
+                }
+                $responses = $esClient->bulk($jsonElastic);
 
+                if ($responses['errors']) {
+                    $message = "Indexation ko";
+                    $this->return["error"] = "ERROR_00500";
+                } else {
+                    $message = "Indexation OK";
+                }
+
+                $this->return["message"] = $message;
+
+            } else {
+                $this->return["error"] = "ERROR_00015";
+                $this->return["message"] = "Invalid API key";
             }
-            $responses = $client->bulk($jsonElastic);
-
-            $this->return["message"] = "Change OK";
-
         } else {
             $this->return["error"] = "ERROR_00025";
             $this->return["message"] = "Empty data, not added";
@@ -149,6 +158,10 @@ class Meteo extends bb
         return $this->return;
     }
 
+    /**
+     * @param array $params
+     * @return array
+     */
     public function data_put($params = []): array
     {
         if (!empty($params)) {
@@ -162,6 +175,10 @@ class Meteo extends bb
         return $this->return;
     }
 
+    /**
+     * @param array $params
+     * @return array
+     */
     public function data_delete($params = []): array
     {
         if (!empty($params)) {
