@@ -32,10 +32,10 @@ class Meteo extends BigBrother
 
 
             $esClient = Elasticsearch\ClientBuilder::create()
-                ->setHosts(["localhost:9200"])
+                ->setHosts([ES_ADRESS])
                 ->build();
 
-            $paramsRequest['index'] = 'air_measurements';
+            $paramsRequest['index'] = ES_INDEX;
 
             if (!empty($params['apikey'])) {
                 $paramsRequest['body']['query']['bool']['must'][]['term']['apiKey'] = $params['apikey'];
@@ -58,11 +58,9 @@ class Meteo extends BigBrother
 
             $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['lte'] = $endDate;
 
-
             if (!empty($params['start'])) {
                 $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['gte'] = $params['start'];
             }
-
 
             $paramsRequest['body']['sort']['timestamp']['order'] = 'desc';
             $size = !empty($params['size']) ? $params['size'] : 10000;
@@ -101,16 +99,14 @@ class Meteo extends BigBrother
     {
         if (!empty($params)) {
 
-            if ($this->checkApiKey($params[0])) {
-                $index = 'air_measurements';
-
-
+            if ($this->checkApiKey($params[0]['apikey'])) {
+                $index = ES_INDEX;
 
                 $date = new \DateTime(date("Y-m-d H:i:s", time()));
                 $theDate = $date->getTimestamp();
 
                 $esClient = Elasticsearch\ClientBuilder::create()
-                    ->setHosts(["127.0.0.1:9200"])
+                    ->setHosts([ES_ADRESS])
                     ->build();
 
                 $apiKey = $params[0]['apikey'];

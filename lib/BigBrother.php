@@ -22,14 +22,14 @@ class BigBrother
 
     public function checkApiKey($params): bool
     {
-        $db = new \PDO('mysql:host=192.168.0.30;dbname=meteo','meteo','klikeul');
-        $select = $db->prepare("SELECT id FROM sensor WHERE token = ?");
-        $select->execute([$params]);
+        $db = new \PDO('mysql:host=' . BDD_ADRESS . ';dbname=' . BDD_BASE, BDD_LOGIN, BDD_PASSWORD);
+        $select = $db->prepare("SELECT id FROM sensor WHERE token = :apiKey");
+        $select->execute(['apiKey' => $params]);
 
-    if (count($select->fetchAll()) === 1) {
-        return true;
-    }
+        if (count($select->fetchAll()) === 1) {
+            return true;
+        }
 
-    return false;
+        return false;
     }
 }

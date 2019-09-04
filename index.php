@@ -11,6 +11,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 define('DIR_ROOT', __DIR__);
 
+require_once('lib/params.php');
 require_once('vendor/autoload.php');
 
 require_once('lib/handlers.php');
