@@ -4,7 +4,7 @@
 <?php
 require_once('vendor/autoload.php');
 
-$index = 'air_measurements1';
+$index = 'air_measurements';
 
 $apiKey = 'dKim8c9Vwsdal7JTnqTb5Tv5K2o6IQbKkaZZ9lZAg-s';
 
@@ -93,7 +93,7 @@ $client->indices()->create($params);
 print_r($response);
 echo '<br><br><br>';
 
-//exit;
+exit;
 $start = new DateTime('2019-07-01');
 $end = new DateTime(date('Y-m-d 23:59:59'));
 
