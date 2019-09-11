@@ -45,23 +45,41 @@ class Meteo extends BigBrother
             //$paramsRequest['body']['aggs']['sale_date']['histogram']['minimum_interval'] = "minute";
             //$paramsRequest['body']['aggs']['sale_date']['histogram']['format'] = 'epoch_millis';
 
+            if (!empty($params['label'])) {
+                $paramsRequest['body']['query']['bool']['must'][]['term']['label'] = $params['label'];
+            }
+
             if (!empty($params['sensor'])) {
                 $paramsRequest['body']['query']['bool']['must'][]['term']['measurement.label'] = $params['sensor'];
             }
 
-            $end = new \DateTime(date('Y-m-d H:i:s'));
-            $endDate = $end->getTimestamp();
+            if (!empty($params['location'])) {
+                $location = json_decode(html_entity_decode($params['location']));
 
-            if (!empty($params['end'])) {
-                $endDate = $params['end'];
+                $paramsRequest['body']['query']['bool']['filter']['geo_bounding_box']['location']['top_left']['lat'] =
+                    $location->{'lat'} + 1;
+                $paramsRequest['body']['query']['bool']['filter']['geo_bounding_box']['location']['top_left']['lon'] =
+                    $location->{'lon'} + 1;
+                $paramsRequest['body']['query']['bool']['filter']['geo_bounding_box']['location']['bottom_right']['lat'] =
+                    $location->{'lat'} - 1;
+                $paramsRequest['body']['query']['bool']['filter']['geo_bounding_box']['location']['bottom_right']['lon'] =
+                    $location->{'lon'} - 1;
+
+            } else {
+
+                $end = new \DateTime(date('Y-m-d H:i:s'));
+                $endDate = $end->getTimestamp();
+
+                if (!empty($params['end'])) {
+                    $endDate = $params['end'];
+                }
+
+                $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['lte'] = $endDate;
+
+                if (!empty($params['start'])) {
+                    $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['gte'] = $params['start'];
+                }
             }
-
-            $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['lte'] = $endDate;
-
-            if (!empty($params['start'])) {
-                $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['gte'] = $params['start'];
-            }
-
             $paramsRequest['body']['sort']['timestamp']['order'] = 'desc';
             $size = !empty($params['size']) ? $params['size'] : 10000;
             $paramsRequest['body']['size'] = $size;
@@ -111,26 +129,32 @@ class Meteo extends BigBrother
 
                 $apiKey = $params[0]['apikey'];
                 $location = $params[1]['location'];
+                $measurment = [];
                 $jsonElastic = [
                     'body' => []
                 ];
 
+                $jsonElastic['body'][] = [
+                    'index' => [
+                        '_index' => $index
+                    ]
+                ];
                 foreach ($params[2]['sensors'] as $param) {
-                    $jsonElastic['body'][] = [
-                        'index' => [
-                            '_index' => $index
-                        ]
-                    ];
-
-                    $jsonElastic['body'][] = [
-                        'apiKey' => $apiKey,
-                        'location' => $location,
-                        'timestamp' => $theDate,
-                        'measurement.label' => $param['device'],
-                        'measurement.value' => $param['values'],
-                        'measurement.unit' => $param['unity']
+                    $measurment[] = [
+                        'label' =>$param['device'],
+                        'value' => $param['values'],
+                        'unit' => $param['unity']
                     ];
                 }
+
+                $jsonElastic['body'][] = [
+                    'apiKey' => $apiKey,
+                    'location' => $location,
+                    'timestamp' => $theDate,
+                    'label' => $theDate,
+                    'measurement' => $measurment
+                ];
+
                 $responses = $esClient->bulk($jsonElastic);
 
                 if ($responses['errors']) {
