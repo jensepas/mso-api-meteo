@@ -18,7 +18,7 @@ use Elasticsearch;
 class Meteo extends BigBrother
 {
     //default return array
-    public $return = ["error" => "0", "message" => ""];
+    public $return = ["error" => "0", "count" => "0", "message" => ""];
 
     /**
      * @param $params
@@ -38,7 +38,7 @@ class Meteo extends BigBrother
             $paramsRequest['index'] = ES_INDEX;
 
             if (!empty($params['apikey'])) {
-                $paramsRequest['body']['query']['bool']['must'][]['term']['apiKey'] = $params['apikey'];
+                $paramsRequest['body']['query']['bool']['must'][]['match']['apiKey'] = $params['apikey'];
             }
             //$paramsRequest['body']['aggs']['sale_date']['date_histogram']['field'] = 'date';
             //$paramsRequest['body']['aggs']['sale_date']['date_histogram']['interval'] = 100;
@@ -46,56 +46,71 @@ class Meteo extends BigBrother
             //$paramsRequest['body']['aggs']['sale_date']['histogram']['format'] = 'epoch_millis';
 
             if (!empty($params['label'])) {
-                $paramsRequest['body']['query']['bool']['must'][]['term']['label'] = $params['label'];
+                $paramsRequest['body']['query']['bool']['must'][]['match']['label'] = $params['label'];
             }
 
             if (!empty($params['sensor'])) {
-                $paramsRequest['body']['query']['bool']['must'][]['term']['measurement.label'] = $params['sensor'];
+                $paramsRequest['body']['query']['bool']['must'][]['match']['measurement.label'] = $params['sensor'];
             }
 
             if (!empty($params['location'])) {
-                $location = json_decode(html_entity_decode($params['location']));
+                $location = explode(',', $params['location']);
 
-                $paramsRequest['body']['query']['bool']['filter']['geo_bounding_box']['location']['top_left']['lat'] =
-                    $location->{'lat'} + 1;
-                $paramsRequest['body']['query']['bool']['filter']['geo_bounding_box']['location']['top_left']['lon'] =
-                    $location->{'lon'} + 1;
-                $paramsRequest['body']['query']['bool']['filter']['geo_bounding_box']['location']['bottom_right']['lat'] =
-                    $location->{'lat'} - 1;
-                $paramsRequest['body']['query']['bool']['filter']['geo_bounding_box']['location']['bottom_right']['lon'] =
-                    $location->{'lon'} - 1;
-
-            } else {
-
-                $end = new \DateTime(date('Y-m-d H:i:s'));
-                $endDate = $end->getTimestamp();
-
-                if (!empty($params['end'])) {
-                    $endDate = $params['end'];
+                if (!isset($paramsRequest['body']['query']['bool']['must'])) {
+                    $paramsRequest['body']['query']['bool']['must'][]['match_all'] = (object)[];
                 }
+                $locationTopLeft = ['lat' => $location[0] , 'lon' => $location[1]];
+                $locationBottonRight = ['lat' => $location[2], 'lon' => $location[3]];
+                $paramsRequest['body']['query']['bool']['filter'][]['geo_bounding_box']['location'] =
+                    ['top_left' => $locationTopLeft, 'bottom_right' => $locationBottonRight];
 
-                $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['lte'] = $endDate;
+                $paramsRequest['body']['aggs']['map_bounds']['geohash_grid']['field'] = 'location';
+                $paramsRequest['body']['aggs']['map_bounds']['geohash_grid']['precision'] = '50m';
+                $paramsRequest['body']['aggs']['map_bounds']['geohash_grid']['size'] = 6000;
 
-                if (!empty($params['start'])) {
-                    $paramsRequest['body']['query']['bool']['filter']['range']['timestamp']['gte'] = $params['start'];
-                }
+                $paramsRequest['body']['aggs']['map_bounds']['aggs']['cell']['geo_bounds']['field'] = 'location';
+                $paramsRequest['body']['aggs']['map_bounds']['aggs']['by_top_hit']['top_hits']['size'] = 1;
+                $paramsRequest['body']['aggs']['map_bounds']['aggs']['by_top_hit']['top_hits']['sort']['timestamp']['order'] = 'desc';
             }
+
+            $end = new \DateTime(date('Y-m-d H:i:s'));
+            $endDate = $end->getTimestamp();
+
+            if (!empty($params['end'])) {
+                $endDate = $params['end'];
+            }
+            $paramsRequest['body']['query']['bool']['filter'][]['range']['timestamp']['lte'] = $endDate;
+
+            if (!empty($params['start'])) {
+                $paramsRequest['body']['query']['bool']['filter'][]['range']['timestamp']['gte'] = $params['start'];
+            }
+
             $paramsRequest['body']['sort']['timestamp']['order'] = 'desc';
-            $size = !empty($params['size']) ? $params['size'] : 10000;
+            $size = isset($params['size']) && $params['size'] !== '' ? $params['size'] : 100;
             $paramsRequest['body']['size'] = $size;
+
 
             $return = [];
             $esReturn = $esClient->search($paramsRequest);
 
-            foreach ($esReturn['hits']['hits'] as $hit) {
-                $return[] = $hit['_source'];
+            if (!empty($params['maps'])) {
+                foreach ($esReturn['aggregations']['map_bounds']['buckets'] as $hit){
+                    $return[] = $hit['by_top_hit']['hits']['hits'][0]['_source'];
+                }
+
+            } else {
+                foreach ($esReturn['hits']['hits'] as $hit) {
+                    $return[] = $hit['_source'];
+                }
+
+                usort($return, function ($a1, $a2) {
+                    return $a1['timestamp'] - $a2['timestamp'];
+                });
             }
 
-            usort($return, function ($a1, $a2) {
-                return $a1['timestamp'] - $a2['timestamp'];
-            });
-
             $this->return["message"] = $return;
+            $this->return["count"] = count($return);
+
             //  } else {
             //     $this->return["error"] = "ERROR_00015";
             //     $this->return["message"] = "Invalid API key";
@@ -117,7 +132,7 @@ class Meteo extends BigBrother
     {
         if (!empty($params)) {
 
-            if ($this->checkApiKey($params[0]['apikey'])) {
+            if ($row = $this->checkApiKey($params[0]['apikey'])) {
                 $index = ES_INDEX;
 
                 $date = new \DateTime(date("Y-m-d H:i:s", time()));
@@ -151,7 +166,7 @@ class Meteo extends BigBrother
                     'apiKey' => $apiKey,
                     'location' => $location,
                     'timestamp' => $theDate,
-                    'label' => $theDate,
+                    'label' => $row['label'],
                     'measurement' => $measurment
                 ];
 

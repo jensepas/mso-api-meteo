@@ -8,10 +8,16 @@ $index = 'air_measurements';
 
 $apiKey = 'dKim8c9Vwsdal7JTnqTb5Tv5K2o6IQbKkaZZ9lZAg-s';
 
-$location = ['lat' => 48.770938, 'lon' => 2.070463];
-$location = [48.770938, 2.070463];
+$location = ['lat' => -10.770938, 'lon' => -25.070463];
+//$location = '48.770938, 2.070463';
 
 $response = [];
+
+function rand_float($st_num=0,$end_num=1,$mul=100000000)
+{
+    if ($st_num>$end_num) return false;
+    return mt_rand($st_num*$mul,$end_num*$mul)/$mul;
+}
 
 function randomDateInRange(DateTime $start, DateTime $end)
 {
@@ -45,6 +51,9 @@ $params = [
         ],
         "mappings" => [
             "properties" => [
+                "location"    => [
+                    "type" => "geo_point"
+                ],
                 "apiKey"      => [
                     "type"   => "keyword"
                 ],
@@ -53,10 +62,6 @@ $params = [
                 ],
                 "timestamp"   => [
                     "type" => "date"
-                ],
-                "location"    => [
-                    "type" => "geo_point"
-
                 ],
                 "measurement" => [
                     "properties" => [
@@ -94,7 +99,7 @@ print_r($response);
 echo '<br><br><br>';
 
 exit;
-$start = new DateTime('2019-07-01');
+$start = new DateTime(date('Y-m-d 00:00:01'));
 $end = new DateTime(date('Y-m-d 23:59:59'));
 
 $params = [
@@ -109,6 +114,8 @@ for ($i = 1; $i <= 20000; $i++) {
     ];
     $date = randomDateInRange($start, $end);
 
+    $location = ['lat' => rand_float(-89, 89), 'lon' => rand_float(-179, 179)];
+print_r($location);
     $params['body'][] = [
         'apiKey'            => $apiKey,
         'timestamp'         => $date,
@@ -124,47 +131,6 @@ for ($i = 1; $i <= 20000; $i++) {
             ['label' => 'dust',
              'value' => rand(15, 85),
              'unit' =>'ug/m3'],
-            ['label' => 'pressure',
-             'value' => rand(950, 1024),
-             'unit' =>'hpa']
-        ]
-    ];
-    $params['body'][] = [
-        'index' => [
-            '_index' => $index
-        ]
-    ];
-
-    $params['body'][] = [
-        'apiKey'            => $apiKey,
-        'timestamp'         => $date,
-        'label'         => 'Capteur ' . rand(1, 4),
-        'location'          => $location,
-        'measurement' => [
-            ['label' => 'pressure',
-             'value' => rand(950, 1024),
-             'unit' =>'hpa']
-        ]
-    ];
-
-    $params['body'][] = [
-        'index' => [
-            '_index' => $index
-        ]
-    ];
-
-    $params['body'][] = [
-        'apiKey'            => $apiKey,
-        'timestamp'         => $date,
-        'label'         => 'Capteur ' . rand(1, 4),
-        'location'          => $location,
-        'measurement' => [
-            ['label' => 'temperature',
-             'value' => rand(-32, 32),
-             'unit' =>'c'],
-            ['label' => 'hygrometry',
-             'value' => rand(15, 85),
-             'unit' =>'%'],
             ['label' => 'pressure',
              'value' => rand(950, 1024),
              'unit' =>'hpa']
@@ -189,5 +155,5 @@ for ($i = 1; $i <= 20000; $i++) {
 if (!empty($params['body'])) {
     $responses = $client->bulk($params);
 }
-print_r($response);
+//print_r($response);
 echo '<br><br><br>';

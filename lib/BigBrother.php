@@ -20,16 +20,16 @@ class BigBrother
         return true;
     }
 
-    public function checkApiKey($params): bool
+    public function checkApiKey($params): array
     {
         $db = new \PDO('mysql:host=' . BDD_ADRESS . ';dbname=' . BDD_BASE, BDD_LOGIN, BDD_PASSWORD);
-        $select = $db->prepare("SELECT id FROM sensor WHERE token = :apiKey");
+        $select = $db->prepare("SELECT id, label FROM sensor WHERE token = :apiKey");
         $select->execute(['apiKey' => $params]);
 
-        if (count($select->fetchAll()) === 1) {
-            return true;
+        if ($row  = $select->fetch()) {
+            return $row ;
         }
 
-        return false;
+        return [];
     }
 }
