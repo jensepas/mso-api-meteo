@@ -11,10 +11,9 @@ ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 define('DIR_ROOT', __DIR__);
 
-require_once('lib/params.php');
-require_once('vendor/autoload.php');
-
-require_once('lib/handlers.php');
+require_once DIR_ROOT. '/lib/params.php';
+require_once DIR_ROOT . '/vendor/autoload.php';
+require_once DIR_ROOT . '/lib/handlers.php';
 
 $returnData = ["error" => "0", "message" => ""];
 

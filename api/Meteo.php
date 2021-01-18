@@ -12,6 +12,7 @@
 
 namespace api;
 
+use \Exception;
 use lib\BigBrother;
 use Elasticsearch;
 
@@ -23,7 +24,7 @@ class Meteo extends BigBrother
     /**
      * @param $params
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function data_get($params): array
     {
@@ -126,7 +127,7 @@ class Meteo extends BigBrother
     /**
      * @param array $params
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function data_post($params = []): array
     {
@@ -144,7 +145,7 @@ class Meteo extends BigBrother
 
                 $apiKey = $params[0]['apikey'];
                 $location = $params[1]['location'];
-                $measurment = [];
+                $measurements = [];
                 $jsonElastic = [
                     'body' => []
                 ];
@@ -155,7 +156,7 @@ class Meteo extends BigBrother
                     ]
                 ];
                 foreach ($params[2]['sensors'] as $param) {
-                    $measurment[] = [
+                    $measurements[] = [
                         'label' =>$param['device'],
                         'value' => $param['values'],
                         'unit' => $param['unity']
@@ -167,7 +168,7 @@ class Meteo extends BigBrother
                     'location' => $location,
                     'timestamp' => $theDate,
                     'label' => $row['label'],
-                    'measurement' => $measurment
+                    'measurement' => $measurements
                 ];
 
                 $responses = $esClient->bulk($jsonElastic);
