@@ -8,6 +8,8 @@
 
 namespace lib;
 
+use PDO;
+
 class BigBrother
 {
     public function check($params): bool
@@ -22,12 +24,12 @@ class BigBrother
 
     public function checkApiKey($params): array
     {
-        $db = new \PDO('mysql:host=' . BDD_ADRESS . ';dbname=' . BDD_BASE, BDD_LOGIN, BDD_PASSWORD);
+        $db = new PDO('mysql:host=' . BDD_ADRESS . ';dbname=' . BDD_BASE, BDD_LOGIN, BDD_PASSWORD);
         $select = $db->prepare("SELECT id, label FROM sensor WHERE token = :apiKey");
         $select->execute(['apiKey' => $params]);
 
-        if ($row  = $select->fetch()) {
-            return $row ;
+        if ($row = $select->fetch()) {
+            return $row;
         }
 
         return [];

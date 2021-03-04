@@ -12,9 +12,10 @@
 
 namespace api;
 
-use \Exception;
-use lib\BigBrother;
+use DateTime;
 use Elasticsearch;
+use Exception;
+use lib\BigBrother;
 
 class Meteo extends BigBrother
 {
@@ -60,7 +61,7 @@ class Meteo extends BigBrother
                 if (!isset($paramsRequest['body']['query']['bool']['must'])) {
                     $paramsRequest['body']['query']['bool']['must'][]['match_all'] = (object)[];
                 }
-                $locationTopLeft = ['lat' => $location[0] , 'lon' => $location[1]];
+                $locationTopLeft = ['lat' => $location[0], 'lon' => $location[1]];
                 $locationBottonRight = ['lat' => $location[2], 'lon' => $location[3]];
                 $paramsRequest['body']['query']['bool']['filter'][]['geo_bounding_box']['location'] =
                     ['top_left' => $locationTopLeft, 'bottom_right' => $locationBottonRight];
@@ -74,7 +75,7 @@ class Meteo extends BigBrother
                 $paramsRequest['body']['aggs']['map_bounds']['aggs']['by_top_hit']['top_hits']['sort']['timestamp']['order'] = 'desc';
             }
 
-            $end = new \DateTime(date('Y-m-d H:i:s'));
+            $end = new DateTime(date('Y-m-d H:i:s'));
             $endDate = $end->getTimestamp();
 
             if (!empty($params['end'])) {
@@ -95,7 +96,7 @@ class Meteo extends BigBrother
             $esReturn = $esClient->search($paramsRequest);
 
             if (!empty($params['maps'])) {
-                foreach ($esReturn['aggregations']['map_bounds']['buckets'] as $hit){
+                foreach ($esReturn['aggregations']['map_bounds']['buckets'] as $hit) {
                     $return[] = $hit['by_top_hit']['hits']['hits'][0]['_source'];
                 }
 
@@ -136,7 +137,7 @@ class Meteo extends BigBrother
             if ($row = $this->checkApiKey($params[0]['apikey'])) {
                 $index = ES_INDEX;
 
-                $date = new \DateTime(date("Y-m-d H:i:s", time()));
+                $date = new DateTime(date("Y-m-d H:i:s", time()));
                 $theDate = $date->getTimestamp();
 
                 $esClient = Elasticsearch\ClientBuilder::create()
@@ -157,7 +158,7 @@ class Meteo extends BigBrother
                 ];
                 foreach ($params[2]['sensors'] as $param) {
                     $measurements[] = [
-                        'label' =>$param['device'],
+                        'label' => $param['device'],
                         'value' => $param['values'],
                         'unit' => $param['unity']
                     ];
