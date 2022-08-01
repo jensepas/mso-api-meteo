@@ -20,7 +20,7 @@ use lib\BigBrother;
 class Meteo extends BigBrother
 {
     //default return array
-    public $return = ["error" => "0", "count" => "0", "message" => ""];
+    public array $return = ["error" => "0", "count" => "0", "message" => ""];
 
     /**
      * @param $params
