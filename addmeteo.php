@@ -1,6 +1,4 @@
 <pre>
-
-
 <?php
 require_once('vendor/autoload.php');
 
@@ -22,8 +20,17 @@ function randomDateInRange(DateTime $start, DateTime $end)
     return $randomTimestamp;
 }
 
+$hosts = [
+    [
+        'host' => 'localhost',
+        'port' => '9200',
+        'user' => 'elastic',
+        'pass' => 'CopaAgZ6T=NDP*Sd2VG*'
+    ]
+];
+
 $client = Elasticsearch\ClientBuilder::create()
-                                     ->setHosts(["localhost:9200"])
+                                     ->setHosts($hosts)
                                      ->build();
 
 echo 'Suppression de l\'index' . '<br>';
