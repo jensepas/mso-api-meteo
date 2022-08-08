@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
+use MatanYadaev\EloquentSpatial\Objects\Point;
+
 class ApiController extends Controller
 {
     /**
@@ -43,14 +45,19 @@ class ApiController extends Controller
 
 
             $apiKey = $params[0]['apikey'];
-            $row = DB::table('sensor')->where('token', $apiKey)->first();
+            $row = DB::table('sensor')
+                ->select('label', 'is_published')
+                ->selectRaw('ST_X(coordinates) as longitude')
+                ->selectRaw('ST_Y(coordinates) as latitude')
+                ->where('token', $apiKey)->first();
             if (!empty($row)) {
                 $index =  env('ELASTICSEARCH_INDEX');
 
                 $date = new DateTime(date("Y-m-d H:i:s", time()));
                 $theDate = $date->getTimestamp();
 
-                $location = $params[1]['location'];
+                $location = [$row->longitude, $row->latitude];
+
                 $measurements = [];
                 $jsonElastic = [
                     'body' => []
@@ -72,6 +79,7 @@ class ApiController extends Controller
                 $jsonElastic['body'][] = [
                     'apiKey' => $apiKey,
                     'location' => $location,
+                    'public' => $row->is_published,
                     'timestamp' => $theDate,
                     'label' => $row->label,
                     'measurement' => $measurements
@@ -152,6 +160,7 @@ class ApiController extends Controller
             $paramsRequest['body']['query']['bool']['filter'][]['range']['timestamp']['gte'] = $request->start;
         }
 
+        $paramsRequest['body']['query']['bool']['must'][]['match']['public'] = 1;
         $paramsRequest['body']['sort']['timestamp']['order'] = 'desc';
         $size = isset($request->size) && $request->size !== '' ? $request->size : 100;
         $paramsRequest['body']['size'] = $size;

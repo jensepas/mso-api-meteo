@@ -68,6 +68,9 @@ class ElasticsearchCreateIndex extends Command
                             "label"      => [
                                 "type"   => "keyword"
                             ],
+                            "public"      => [
+                                "type"   => "bool"
+                            ],
                             "timestamp"   => [
                                 "type" => "date"
                             ],
