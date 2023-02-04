@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use DateTime;
-use Elasticsearch\Client;
+use Elastic\Elasticsearch\Client;
 use Illuminate\Console\Command;
 
 class ElasticsearchEnrichIndex extends Command
@@ -44,8 +44,7 @@ class ElasticsearchEnrichIndex extends Command
         if ($client->ping()) {
 
             $index = 'air_measurements';
-            $apiKey = 'dKim8c9Vwsdal7JTnqTb5Tv5K2o6IQbKkaZZ9lZAg-s';
-            $location = [48.770938, 2.070463];
+
 
             $this->info('Enrichissement de l\'index');
             $start = new DateTime('2022-08-01');
@@ -64,7 +63,7 @@ class ElasticsearchEnrichIndex extends Command
                 $date = $this->randomDateInRange($start, $end);
 
                 $params['body'][] = [
-                    'apiKey'            => 'dKim8c9Vwsdal7JTnqTb5Tv5K2o6IQbKkaZZ9lZAg-s',
+                    'apiKey'            => '<api_key>',
                     'timestamp'         => $date,
                     'label'         => 'Capteur extérieur',
                     'location'          => [48.770938, 2.070463],
@@ -90,7 +89,7 @@ class ElasticsearchEnrichIndex extends Command
                 ];
 
                 $params['body'][] = [
-                    'apiKey'            => '3WV-DnzwSGLE2foAHvMZLMUdWMC8qb0nqzJtJI3n9fc',
+                    'apiKey'            => '<api_key>',
                     'timestamp'         => $date,
                     'label'         => 'Capteur bureau',
                     'location'          => [48.770938, 2.020465],
@@ -108,7 +107,7 @@ class ElasticsearchEnrichIndex extends Command
                 ];
 
                 $params['body'][] = [
-                    'apiKey'            => 'Y1vMH3cetBhU6Muy5owdzclUAtz1fzloXe4Zq0qqBdM',
+                    'apiKey'            => '<api_key>',
                     'timestamp'         => $date,
                     'label'         => 'Capteur Maurepas',
                     'location'          => [48.770938, 2.050467],
@@ -145,7 +144,7 @@ class ElasticsearchEnrichIndex extends Command
         $this->error('Could not connect to Elasticsearch.');
     }
 
-    function randomDateInRange(DateTime $start, DateTime $end)
+    private function randomDateInRange(DateTime $start, DateTime $end): int
     {
         $randomTimestamp = mt_rand($start->getTimestamp(), $end->getTimestamp());
         $randomDate = new DateTime();
