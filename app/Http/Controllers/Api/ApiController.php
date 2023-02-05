@@ -143,7 +143,8 @@ class ApiController extends Controller
 
             $paramsRequest['body']['aggs']['map_bounds']['aggs']['cell']['geo_bounds']['field'] = 'location';
             $paramsRequest['body']['aggs']['map_bounds']['aggs']['by_top_hit']['top_hits']['size'] = 1;
-            $paramsRequest['body']['aggs']['map_bounds']['aggs']['by_top_hit']['top_hits']['sort']['timestamp']['order'] = 'desc';
+            $paramsRequest['body']['aggs']['map_bounds']['aggs']['by_top_hit']['top_hits']['sort']['timestamp']['order']
+                = 'desc';
         }
 
 
