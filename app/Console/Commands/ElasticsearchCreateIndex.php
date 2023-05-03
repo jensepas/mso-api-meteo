@@ -47,9 +47,6 @@ class ElasticsearchCreateIndex extends Command
             $params = ['index' => $index];
             $response = $client->indices()->delete($params);
 
-            print_r($response);
-
-
             $this->info('Création de l\'index');
 
             $params = [
@@ -69,7 +66,7 @@ class ElasticsearchCreateIndex extends Command
                                 "type"   => "keyword"
                             ],
                             "public"      => [
-                                "type"   => "bool"
+                                "type"   => "boolean"
                             ],
                             "timestamp"   => [
                                 "type" => "date"
@@ -110,7 +107,6 @@ class ElasticsearchCreateIndex extends Command
 
             $response = $client->indices()->create($params);
 
-            print_r($response);
             return;
         }
 

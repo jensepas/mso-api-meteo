@@ -11,7 +11,8 @@
         "laravel/framework": "^9.19",
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7",
-        "matanyadaev/laravel-eloquent-spatial": "^2.1"
+        "matanyadaev/laravel-eloquent-spatial": "^2.1",
+        "phpxmlrpc/polyfill-xmlrpc": "^1.0@RC"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -57,7 +58,10 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

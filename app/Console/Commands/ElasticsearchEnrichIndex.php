@@ -66,6 +66,7 @@ class ElasticsearchEnrichIndex extends Command
                     'apiKey'            => '<api_key>',
                     'timestamp'         => $date,
                     'label'         => 'Capteur extérieur',
+                    'public'         => true,
                     'location'          => [48.770938, 2.070463],
                     'measurement' => [
                         ['label' => 'temperature',
@@ -92,6 +93,7 @@ class ElasticsearchEnrichIndex extends Command
                     'apiKey'            => '<api_key>',
                     'timestamp'         => $date,
                     'label'         => 'Capteur bureau',
+                    'public'         => true,
                     'location'          => [48.770938, 2.020465],
                     'measurement' => [
                         ['label' => 'pressure',
@@ -110,6 +112,7 @@ class ElasticsearchEnrichIndex extends Command
                     'apiKey'            => '<api_key>',
                     'timestamp'         => $date,
                     'label'         => 'Capteur Maurepas',
+                    'public'         => true,
                     'location'          => [48.770938, 2.050467],
                     'measurement' => [
                         ['label' => 'temperature',

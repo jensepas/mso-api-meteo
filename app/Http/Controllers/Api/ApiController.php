@@ -160,7 +160,7 @@ class ApiController extends Controller
             $paramsRequest['body']['query']['bool']['filter'][]['range']['timestamp']['gte'] = $request->start;
         }
 
-        $paramsRequest['body']['query']['bool']['must'][]['match']['public'] = 1;
+        $paramsRequest['body']['query']['bool']['must'][]['match']['public'] = true;
         $paramsRequest['body']['sort']['timestamp']['order'] = 'desc';
         $size = isset($request->size) && $request->size !== '' ? $request->size : 100;
         $paramsRequest['body']['size'] = $size;
