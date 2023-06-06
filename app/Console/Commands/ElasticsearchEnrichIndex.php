@@ -134,8 +134,6 @@ class ElasticsearchEnrichIndex extends Command
                     // erase the old bulk request
                     $params = ['body' => []];
 
-                    print_r($responses);
-                    echo '<br>';
                     // unset the bulk response when you are done to save memory
                     unset($responses);
                 }

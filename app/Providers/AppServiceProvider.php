@@ -21,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
             return ClientBuilder::create()
                 ->setHosts([env('ELASTICSEARCH_HOST')])
                 ->setBasicAuthentication(env('ELASTICSEARCH_USER'), env('ELASTICSEARCH_PASS'))
+                //->setCABundle('/etc/elasticsearch/certs/http_ca.crt')
                 ->build();
         });
     }
