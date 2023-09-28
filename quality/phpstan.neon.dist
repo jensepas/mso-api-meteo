@@ -1,6 +1,6 @@
 parameters:
   level: max
   paths:
-    - ../src
+    - ../app
     - ../tests
   ignoreErrors:

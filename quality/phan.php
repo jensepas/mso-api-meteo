@@ -3,7 +3,7 @@
 return [
     'target_php_version' => '8.2',
     'directory_list' => [
-        'src/',
+        'app/',
         'tests/',
         'vendor/',
     ],
