@@ -1,7 +1,7 @@
 {
     "name": "api/v2",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "mso-api-meteo.",
     "keywords": ["framework", "laravel"],
     "license": "MIT",
     "require": {
