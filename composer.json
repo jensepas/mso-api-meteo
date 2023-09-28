@@ -20,8 +20,15 @@
         "laravel/sail": "^1.0.1",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^7.0",
-        "phpunit/phpunit": "^10.0",
-        "spatie/laravel-ignition": "^2.1.0"
+        "spatie/laravel-ignition": "^2.1.0",
+        "phpunit/phpunit": "*",
+        "squizlabs/php_codesniffer": "*",
+        "phpstan/phpstan": "*",
+        "vimeo/psalm": "*",
+        "phan/phan": "*",
+        "infection/infection": "*",
+        "phpmd/phpmd": "*",
+        "rector/rector": "^0.18.4"
     },
     "autoload": {
         "psr-4": {
@@ -48,6 +55,31 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
+        ], "serve": "php -S localhost:8000 index.php",
+        "test": "vendor/bin/phpunit -c ./quality/phpunit.xml.dist",
+        "testdox": "@test --testdox",
+        "test-xdebug": "XDEBUG_MODE=coverage vendor/bin/phpunit -c ./quality/phpunit.xml.dist",
+        "coverage-html": "@test-xdebug --coverage-html ./doc",
+        "coverage-xml": "@test-xdebug --coverage-clover ./tmp/coverage.xml",
+        "quality:clean": "vendor/bin/phpcbf --standard=./quality/phpcs.xml.dist",
+        "quality:refactor": "vendor/bin/rector process --config ./quality/rector.php",
+        "quality:refactor-dry": "vendor/bin/rector process --config ./quality/rector.php --dry-run",
+        "quality:phpcs": "vendor/bin/phpcs --standard=./quality/phpcs.xml.dist",
+        "quality:phpstan": "vendor/bin/phpstan analyze -c ./quality/phpstan.neon.dist",
+        "quality:psalm": "vendor/bin/psalm --no-cache --config ./quality/psalm.xml.dist",
+        "quality:phan": "vendor/bin/phan --config-file ./quality/phan.php",
+        "quality:phan-silent": "vendor/bin/phan --no-progress-bar --config-file ./quality/phan.php",
+        "quality:infection": "vendor/bin/infection --configuration=./quality/infection.json.dist",
+        "quality:phpmd": "vendor/bin/phpmd src/,tests/ text quality/phpmd.xml.dist",
+        "fulltest": [
+            "@test",
+            "@quality:infection",
+            "@quality:phpcs",
+            "@quality:phpmd",
+            "@quality:phpstan",
+            "@quality:psalm",
+            "@quality:phan",
+            "echo 'OK'"
         ]
     },
     "extra": {
@@ -55,12 +87,32 @@
             "dont-discover": []
         }
     },
+    "scripts-descriptions": {
+        "serve": "Run a local web server",
+        "test": "Run unit tests",
+        "testdox": "Run unit tests with testdox output",
+        "test-xdebug": "Run unit tests with Xdebug enabled",
+        "coverage-html": "Generate HTML code coverage report",
+        "coverage-xml": "Generate XML code coverage report",
+        "quality:clean": "Clean code with PHP Code Beautifier and Fixer",
+        "quality:refactor": "Refactor code with Rector",
+        "quality:refactor-dry": "Dry-run Rector",
+        "quality:phpcs": "Run PHP Code Sniffer",
+        "quality:phpstan": "Run PHPStan",
+        "quality:psalm": "Run Psalm",
+        "quality:phan": "Run Phan",
+        "quality:phan-silent": "Run Phan without progress bar",
+        "quality:infection": "Run Infection",
+        "quality:phpmd": "Run PHP Mess Detector",
+        "fulltest": "Run all tests"
+    },
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "infection/extension-installer": true
         }
     },
     "minimum-stability": "dev",
