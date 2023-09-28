@@ -55,7 +55,8 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
-        ], "serve": "php -S localhost:8000 index.php",
+        ],
+        "serve": "php -S localhost:8000 index.php",
         "test": "vendor/bin/phpunit -c ./quality/phpunit.xml.dist",
         "testdox": "@test --testdox",
         "test-xdebug": "XDEBUG_MODE=coverage vendor/bin/phpunit -c ./quality/phpunit.xml.dist",
