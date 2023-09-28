@@ -39,13 +39,12 @@ class ElasticsearchCreateIndex extends Command
      */
     public function handle(Client $client): void
     {
-        if ($client->ping()) {
-
+        if (!is_null($client->ping())) {
             $index = 'air_measurements';
 
             $this->info('Suppression de l\'index');
             $params = ['index' => $index];
-            $response = $client->indices()->delete($params);
+            $client->indices()->delete($params);
 
             $this->info('Création de l\'index');
 
@@ -105,7 +104,7 @@ class ElasticsearchCreateIndex extends Command
                 ]
             ];
 
-            $response = $client->indices()->create($params);
+            $client->indices()->create($params);
 
             return;
         }

@@ -41,10 +41,8 @@ class ElasticsearchEnrichIndex extends Command
      */
     public function handle(Client $client): void
     {
-        if ($client->ping()) {
-
+        if (!is_null($client->ping())) {
             $index = 'air_measurements';
-
 
             $this->info('Enrichissement de l\'index');
             $start = new DateTime('2022-08-01');
@@ -71,34 +69,16 @@ class ElasticsearchEnrichIndex extends Command
                     'measurement' => [
                         ['label' => 'temperature',
                             'value' => rand(-32, 32),
-                            'unit' =>'c'],
+                            'unit' => 'c'],
                         ['label' => 'hygrometry',
                             'value' => rand(15, 85),
-                            'unit' =>'%'],
+                            'unit' => '%'],
                         ['label' => 'dust',
                             'value' => rand(15, 85),
-                            'unit' =>'ug/m3'],
+                            'unit' => 'ug/m3'],
                         ['label' => 'pressure',
                             'value' => rand(950, 1024),
-                            'unit' =>'hpa']
-                    ]
-                ];
-                $params['body'][] = [
-                    'index' => [
-                        '_index' => $index
-                    ]
-                ];
-
-                $params['body'][] = [
-                    'apiKey'            => '<api_key>',
-                    'timestamp'         => $date,
-                    'label'         => 'Capteur bureau',
-                    'public'         => true,
-                    'location'          => [48.770938, 2.020465],
-                    'measurement' => [
-                        ['label' => 'pressure',
-                            'value' => rand(950, 1024),
-                            'unit' =>'hpa']
+                            'unit' => 'hpa']
                     ]
                 ];
 
@@ -117,13 +97,13 @@ class ElasticsearchEnrichIndex extends Command
                     'measurement' => [
                         ['label' => 'temperature',
                             'value' => rand(-32, 32),
-                            'unit' =>'c'],
+                            'unit' => 'c'],
                         ['label' => 'hygrometry',
                             'value' => rand(15, 85),
-                            'unit' =>'%'],
+                            'unit' => '%'],
                         ['label' => 'pressure',
                             'value' => rand(950, 1024),
-                            'unit' =>'hpa']
+                            'unit' => 'hpa']
                     ]
                 ];
 

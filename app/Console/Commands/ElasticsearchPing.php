@@ -39,7 +39,7 @@ class ElasticsearchPing extends Command
      */
     public function handle(Client $client): void
     {
-        if ($client->ping()) {
+        if (!is_null($client->ping())) {
             $this->info('pong');
 
             return;

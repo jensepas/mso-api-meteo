@@ -1,16 +1,13 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StorePostRequest;
 use DateTime;
 use Elastic\Elasticsearch\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-
-use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class ApiController extends Controller
 {
@@ -22,10 +19,7 @@ class ApiController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json([
-            'message' => '',
-            'count' =>''
-        ]);
+        return response()->json(['message' => '', 'count' => '']);
     }
 
     /**
@@ -39,10 +33,11 @@ class ApiController extends Controller
     public function store(Client $client, Request $request): JsonResponse
     {
         $params = json_decode($request->getContent(), true);
+        $return =  [];
+        $return["error"] = "ERROR_00025";
+        $return["message"] = "Empty data, not added";
 
         if (!empty($params)) {
-
-
             $apiKey = $params[0]['apikey'];
             $row = DB::table('sensor')
                 ->select('label', 'is_published')
@@ -86,27 +81,20 @@ class ApiController extends Controller
 
                 $responses = $client->bulk($jsonElastic);
 
+                $message = "Indexation OK";
                 if ($responses['errors']) {
                     $message = "Indexation ko";
                     $return["error"] = "ERROR_00500";
-                } else {
-                    $message = "Indexation OK";
                 }
 
                 $return["message"] = $message;
-
             } else {
                 $return["error"] = "ERROR_00015";
                 $return["message"] = "Invalid API key";
             }
-        } else {
-            $return["error"] = "ERROR_00025";
-            $return["message"] = "Empty data, not added";
         }
 
-        return response()->json(
-            $return
-        );
+        return response()->json($return);
     }
 
     /**
@@ -119,7 +107,7 @@ class ApiController extends Controller
      */
     public function show(Client $client, Request $request): JsonResponse
     {
-
+        $paramsRequest =  [];
         $paramsRequest['index'] = env('ELASTICSEARCH_INDEX');
 
         if (!empty($request->apikey)) {
@@ -147,7 +135,6 @@ class ApiController extends Controller
                 = 'desc';
         }
 
-
         $end = new DateTime(date('Y-m-d H:i:s'));
         $endDate = $end->getTimestamp();
 
@@ -173,14 +160,13 @@ class ApiController extends Controller
             foreach ($esReturn['aggregations']['map_bounds']['buckets'] as $hit) {
                 $return[] = $hit['by_top_hit']['hits']['hits'][0]['_source'];
             }
-
         } else {
             foreach ($esReturn['hits']['hits'] as $hit) {
                 $return[] = $hit['_source'];
             }
 
-            usort($return, function ($a1, $a2) {
-                return $a1['timestamp'] - $a2['timestamp'];
+            usort($return, function ($val1, $val2) {
+                return $val1['timestamp'] - $val2['timestamp'];
             });
         }
 
