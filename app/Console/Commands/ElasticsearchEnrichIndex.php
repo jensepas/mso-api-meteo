@@ -36,7 +36,6 @@ class ElasticsearchEnrichIndex extends Command
      * Execute the console command.
      *
      * @param Client $client
-     * @return void
      * @throws \Exception
      */
     public function handle(Client $client): void
