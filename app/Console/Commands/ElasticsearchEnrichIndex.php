@@ -67,16 +67,16 @@ class ElasticsearchEnrichIndex extends Command
                     'location'          => [48.770938, 2.070463],
                     'measurement' => [
                         ['label' => 'temperature',
-                            'value' => rand(-32, 32),
+                            'value' => random_int(-32, 32),
                             'unit' => 'c'],
                         ['label' => 'hygrometry',
-                            'value' => rand(15, 85),
+                            'value' => random_int(15, 85),
                             'unit' => '%'],
                         ['label' => 'dust',
-                            'value' => rand(15, 85),
+                            'value' => random_int(15, 85),
                             'unit' => 'ug/m3'],
                         ['label' => 'pressure',
-                            'value' => rand(950, 1024),
+                            'value' => random_int(950, 1024),
                             'unit' => 'hpa']
                     ]
                 ];
@@ -95,13 +95,13 @@ class ElasticsearchEnrichIndex extends Command
                     'location'          => [48.770938, 2.050467],
                     'measurement' => [
                         ['label' => 'temperature',
-                            'value' => rand(-32, 32),
+                            'value' => random_int(-32, 32),
                             'unit' => 'c'],
                         ['label' => 'hygrometry',
-                            'value' => rand(15, 85),
+                            'value' => random_int(15, 85),
                             'unit' => '%'],
                         ['label' => 'pressure',
-                            'value' => rand(950, 1024),
+                            'value' => random_int(950, 1024),
                             'unit' => 'hpa']
                     ]
                 ];
@@ -124,9 +124,12 @@ class ElasticsearchEnrichIndex extends Command
         $this->error('Could not connect to Elasticsearch.');
     }
 
+    /**
+     * @throws \Exception
+     */
     private function randomDateInRange(DateTime $start, DateTime $end): int
     {
-        $randomTimestamp = mt_rand($start->getTimestamp(), $end->getTimestamp());
+        $randomTimestamp = random_int($start->getTimestamp(), $end->getTimestamp());
         $randomDate = new DateTime();
         $randomDate->setTimestamp($randomTimestamp);
 
