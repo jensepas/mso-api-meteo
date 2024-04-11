@@ -16,8 +16,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get(
-        '/', [ApiController::class, 'show']
+    '/',
+    [ApiController::class, 'show']
 );
 Route::post(
-    '/', [ApiController::class, 'store']
+    '/',
+    [ApiController::class, 'store']
 );

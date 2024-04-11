@@ -44,7 +44,7 @@ class ElasticsearchEnrichIndex extends Command
             $index = 'air_measurements';
 
             $this->info('Enrichissement de l\'index');
-            $start = new DateTime('2022-08-01');
+            $start = new DateTime('2024-01-01');
             $end = new DateTime(date('Y-m-d 23:59:59'));
 
             $params = [
