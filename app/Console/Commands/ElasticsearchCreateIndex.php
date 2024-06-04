@@ -34,12 +34,11 @@ class ElasticsearchCreateIndex extends Command
     /**
      * Execute the console command.
      *
-     * @param Client $client
      * @throws \Exception
      */
     public function handle(Client $client): void
     {
-        if (!is_null($client->ping())) {
+        if ($client->ping()) {
             $index = 'air_measurements';
 
             $this->info('Suppression de l\'index');
@@ -50,58 +49,58 @@ class ElasticsearchCreateIndex extends Command
 
             $params = [
                 'index' => $index,
-                'body'  => [
-                    "settings" => [
-                        "number_of_shards"   => 1,
-                        "number_of_replicas" => 0,
-                        "refresh_interval"   => "1s"
+                'body' => [
+                    'settings' => [
+                        'number_of_shards' => 1,
+                        'number_of_replicas' => 0,
+                        'refresh_interval' => '1s',
                     ],
-                    "mappings" => [
-                        "properties" => [
-                            "apiKey"      => [
-                                "type"   => "keyword"
+                    'mappings' => [
+                        'properties' => [
+                            'apiKey' => [
+                                'type' => 'keyword',
                             ],
-                            "label"      => [
-                                "type"   => "keyword"
+                            'label' => [
+                                'type' => 'keyword',
                             ],
-                            "public"      => [
-                                "type"   => "boolean"
+                            'public' => [
+                                'type' => 'boolean',
                             ],
-                            "timestamp"   => [
-                                "type" => "date"
+                            'timestamp' => [
+                                'type' => 'date',
                             ],
-                            "location"    => [
-                                "type" => "geo_point"
+                            'location' => [
+                                'type' => 'geo_point',
 
                             ],
-                            "measurement" => [
-                                "properties" => [
-                                    "value" => [
-                                        "type" => "double"
+                            'measurement' => [
+                                'properties' => [
+                                    'value' => [
+                                        'type' => 'double',
                                     ],
-                                    "label" => [
-                                        "type"   => "text",
-                                        "fields" => [
-                                            "keyword" => [
-                                                "type"         => "keyword",
-                                                "ignore_above" => 256
-                                            ]
-                                        ]
+                                    'label' => [
+                                        'type' => 'text',
+                                        'fields' => [
+                                            'keyword' => [
+                                                'type' => 'keyword',
+                                                'ignore_above' => 256,
+                                            ],
+                                        ],
                                     ],
-                                    "unit"  => [
-                                        "type"   => "text",
-                                        "fields" => [
-                                            "keyword" => [
-                                                "type"         => "keyword",
-                                                "ignore_above" => 256
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                                    'unit' => [
+                                        'type' => 'text',
+                                        'fields' => [
+                                            'keyword' => [
+                                                'type' => 'keyword',
+                                                'ignore_above' => 256,
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ];
 
             $client->indices()->create($params);

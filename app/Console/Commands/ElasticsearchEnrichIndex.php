@@ -35,39 +35,38 @@ class ElasticsearchEnrichIndex extends Command
     /**
      * Execute the console command.
      *
-     * @param Client $client
      * @throws \Exception
      */
     public function handle(Client $client): void
     {
-        if (!is_null($client->ping())) {
+        if ($client->ping()) {
             $index = 'air_measurements';
 
             $this->info('Enrichissement de l\'index');
-            $start = new DateTime('2024-01-01');
+            $start = new DateTime(date('Y-m-d 00:00:01'));
             $end = new DateTime(date('Y-m-d 23:59:59'));
 
             $params = [
-                'body' => []
+                'body' => [],
             ];
 
-            for ($i = 1; $i <= 20000; $i++) {
+            for ($i = 1; $i <= 500000; $i++) {
                 $params['body'][] = [
                     'index' => [
-                        '_index' => $index
-                    ]
+                        '_index' => $index,
+                    ],
                 ];
                 $date = $this->randomDateInRange($start, $end);
 
                 $params['body'][] = [
-                    'apiKey'            => '<api_key>',
-                    'timestamp'         => $date,
-                    'label'         => 'Capteur extérieur',
-                    'public'         => true,
-                    'location'          => [48.770938, 2.070463],
+                    'apiKey' => env('KEY_EXT'),
+                    'timestamp' => $date,
+                    'label' => 'Capteur extérieur',
+                    'public' => true,
+                    'location' => [48.770938, 2.070463],
                     'measurement' => [
                         ['label' => 'temperature',
-                            'value' => random_int(-32, 32),
+                            'value' => random_int(15, 42),
                             'unit' => 'c'],
                         ['label' => 'hygrometry',
                             'value' => random_int(15, 85),
@@ -77,33 +76,42 @@ class ElasticsearchEnrichIndex extends Command
                             'unit' => 'ug/m3'],
                         ['label' => 'pressure',
                             'value' => random_int(950, 1024),
-                            'unit' => 'hpa']
-                    ]
+                            'unit' => 'hpa'],
+                        ['label' => 'co',
+                            'value' => random_int(150, 500),
+                            'unit' => 'ppm'],
+                        ['label' => 'lpg',
+                            'value' => random_int(150, 500),
+                            'unit' => 'ppm'],
+                        ['label' => 'smoke',
+                            'value' => random_int(150, 500),
+                            'unit' => 'ppm'],
+                    ],
                 ];
 
                 $params['body'][] = [
                     'index' => [
-                        '_index' => $index
-                    ]
+                        '_index' => $index,
+                    ],
                 ];
 
                 $params['body'][] = [
-                    'apiKey'            => '<api_key>',
-                    'timestamp'         => $date,
-                    'label'         => 'Capteur Maurepas',
-                    'public'         => true,
-                    'location'          => [48.770938, 2.050467],
+                    'apiKey' => env('KEY_INT'),
+                    'timestamp' => $date,
+                    'label' => 'Capteur Maurepas',
+                    'public' => true,
+                    'location' => [48.770938, 2.050467],
                     'measurement' => [
                         ['label' => 'temperature',
-                            'value' => random_int(-32, 32),
+                            'value' => random_int(15, 42),
                             'unit' => 'c'],
                         ['label' => 'hygrometry',
                             'value' => random_int(15, 85),
                             'unit' => '%'],
                         ['label' => 'pressure',
                             'value' => random_int(950, 1024),
-                            'unit' => 'hpa']
-                    ]
+                            'unit' => 'hpa'],
+                    ],
                 ];
 
                 // Every 1000 documents stop and send the bulk request

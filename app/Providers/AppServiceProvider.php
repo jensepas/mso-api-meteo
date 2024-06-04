@@ -10,25 +10,23 @@ class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
-     *
-     * @return void
      */
     public function register(): void
     {
-        $this->app->singleton(Client::class, function () {
+        $this->app->singleton(
+            Client::class, function () {
 
-            return ClientBuilder::create()
-                ->setHosts([env('ELASTICSEARCH_HOST')])
-                ->setBasicAuthentication(env('ELASTICSEARCH_USER'), env('ELASTICSEARCH_PASS'))
+                return ClientBuilder::create()
+                    ->setHosts([env('ELASTICSEARCH_HOST')])
+                    ->setBasicAuthentication(env('ELASTICSEARCH_USER'), env('ELASTICSEARCH_PASS'))
                 //->setCABundle('/etc/elasticsearch/certs/http_ca.crt')
-                ->build();
-        });
+                    ->build();
+            }
+        );
     }
 
     /**
      * Bootstrap any application services.
-     *
-     * @return void
      */
     public function boot(): void
     {

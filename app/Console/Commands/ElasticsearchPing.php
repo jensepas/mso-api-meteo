@@ -34,12 +34,11 @@ class ElasticsearchPing extends Command
     /**
      * Execute the console command.
      *
-     * @param Client $client
-     * @return void
+     * @throws \Exception
      */
     public function handle(Client $client): void
     {
-        if (!is_null($client->ping())) {
+        if (! is_null($client->ping())) {
             $this->info('pong');
 
             return;

@@ -13,7 +13,6 @@ class Meteo extends Model
 {
     protected $fillable = ['title', 'description', 'coordinates'];
 
-
     protected $casts = [
         'coordinates' => Point::class,
     ];
