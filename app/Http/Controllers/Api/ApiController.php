@@ -91,6 +91,7 @@ class ApiController extends Controller
         return response()->json($return);
     }
 
+
     /**
      * Display the specified resource.
      *
@@ -98,55 +99,112 @@ class ApiController extends Controller
      */
     public function show(Client $client, Request $request): JsonResponse
     {
-        $paramsRequest = [];
-        $paramsRequest['index'] = env('ELASTICSEARCH_INDEX');
+        $paramsRequest = $this->initializeParamsRequest();
 
-        if (! empty($request->apikey)) {
-            $paramsRequest['body']['query']['bool']['must'][]['match']['apiKey'] = $request->apikey;
+        $this->addApiKeyFilter($paramsRequest, $request->apikey);
+        $this->addLocationFilter($paramsRequest, $request->location);
+        $this->addDateRangeFilter($paramsRequest, $request->start, $request->end);
+
+        $this->addPublicFilter($paramsRequest);
+        $this->addSortAndSize($paramsRequest, $request->size);
+
+        $esReturn = $client->search($paramsRequest);
+        $return = $this->prepareResponse($esReturn, $request->maps);
+
+        return response()->json([
+            'message' => $return,
+            'count' => count($return),
+        ]);
+    }
+
+    private function initializeParamsRequest(): array
+    {
+        return [
+            'index' => env('ELASTICSEARCH_INDEX'),
+            'body' => [
+                'query' => [
+                    'bool' => [
+                        'must' => [],
+                        'filter' => [],
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    private function addApiKeyFilter(array &$paramsRequest, $apiKey): void
+    {
+        if (!empty($apiKey)) {
+            $paramsRequest['body']['query']['bool']['must'][]['match']['apiKey'] = $apiKey;
         }
+    }
 
-        if (! empty($request->location)) {
-            $location = explode(',', $request->location);
+    private function addLocationFilter(array &$paramsRequest, $location): void
+    {
+        if (!empty($location)) {
+            $locationParts = explode(',', $location);
+            $locationTopLeft = ['lat' => $locationParts[0], 'lon' => $locationParts[1]];
+            $locationBottomRight = ['lat' => $locationParts[2], 'lon' => $locationParts[3]];
 
-            if (! isset($paramsRequest['body']['query']['bool']['must'])) {
+            if (empty($paramsRequest['body']['query']['bool']['must'])) {
                 $paramsRequest['body']['query']['bool']['must'][]['match_all'] = (object) [];
             }
-            $locationTopLeft = ['lat' => $location[0], 'lon' => $location[1]];
-            $locationBottonRight = ['lat' => $location[2], 'lon' => $location[3]];
-            $paramsRequest['body']['query']['bool']['filter'][]['geo_bounding_box']['location'] =
-                ['top_left' => $locationTopLeft, 'bottom_right' => $locationBottonRight];
 
-            $paramsRequest['body']['aggs']['map_bounds']['geohash_grid']['field'] = 'location';
-            $paramsRequest['body']['aggs']['map_bounds']['geohash_grid']['precision'] = '50m';
-            $paramsRequest['body']['aggs']['map_bounds']['geohash_grid']['size'] = 6000;
+            $paramsRequest['body']['query']['bool']['filter'][]['geo_bounding_box']['location'] = [
+                'top_left' => $locationTopLeft,
+                'bottom_right' => $locationBottomRight,
+            ];
 
-            $paramsRequest['body']['aggs']['map_bounds']['aggs']['cell']['geo_bounds']['field'] = 'location';
-            $paramsRequest['body']['aggs']['map_bounds']['aggs']['by_top_hit']['top_hits']['size'] = 1;
-            $paramsRequest['body']['aggs']['map_bounds']['aggs']['by_top_hit']['top_hits']['sort']['timestamp']['order']
-                = 'desc';
+            $this->addAggregations($paramsRequest);
         }
+    }
 
-        $end = new DateTime(date('Y-m-d H:i:s'));
-        $endDate = $end->getTimestamp();
+    private function addAggregations(array &$paramsRequest): void
+    {
+        $paramsRequest['body']['aggs']['map_bounds']['geohash_grid'] = [
+            'field' => 'location',
+            'precision' => '50m',
+            'size' => 6000,
+        ];
 
-        if (! empty($request->end)) {
-            $endDate = $request->end;
-        }
+        $paramsRequest['body']['aggs']['map_bounds']['aggs']['cell']['geo_bounds']['field'] = 'location';
+        $paramsRequest['body']['aggs']['map_bounds']['aggs']['by_top_hit']['top_hits'] = [
+            'size' => 1,
+            'sort' => [
+                'timestamp' => [
+                    'order' => 'desc',
+                ]
+            ]
+        ];
+    }
+
+    private function addDateRangeFilter(array &$paramsRequest, $start, $end): void
+    {
+        $endDate = $end ? $end : (new DateTime())->getTimestamp();
+
         $paramsRequest['body']['query']['bool']['filter'][]['range']['timestamp']['lte'] = $endDate;
 
-        if (! empty($request->start)) {
-            $paramsRequest['body']['query']['bool']['filter'][]['range']['timestamp']['gte'] = $request->start;
+        if (!empty($start)) {
+            $paramsRequest['body']['query']['bool']['filter'][]['range']['timestamp']['gte'] = $start;
         }
+    }
 
+    private function addPublicFilter(array &$paramsRequest): void
+    {
         $paramsRequest['body']['query']['bool']['must'][]['match']['public'] = true;
+    }
+
+    private function addSortAndSize(array &$paramsRequest, $size): void
+    {
         $paramsRequest['body']['sort']['timestamp']['order'] = 'desc';
-        $size = isset($request->size) && $request->size !== '' ? $request->size : 100;
-        $paramsRequest['body']['size'] = $size;
+        $paramsRequest['body']['size'] = $size ?? 100;
+    }
 
+    private function prepareResponse($esReturn, $maps): array
+    {
         $return = [];
-        $esReturn = $client->search($paramsRequest);
 
-        if (! empty($request->maps)) {
+        if (!empty($maps)) {
             foreach ($esReturn['aggregations']['map_bounds']['buckets'] as $hit) {
                 $return[] = $hit['by_top_hit']['hits']['hits'][0]['_source'];
             }
@@ -155,18 +213,11 @@ class ApiController extends Controller
                 $return[] = $hit['_source'];
             }
 
-            usort(
-                $return, function ($val1, $val2) {
-                    return $val1['timestamp'] - $val2['timestamp'];
-                }
-            );
+            usort($return, function ($val1, $val2) {
+                return $val1['timestamp'] - $val2['timestamp'];
+            });
         }
 
-        return response()->json(
-            [
-                'message' => $return,
-                'count' => count($return),
-            ]
-        );
+        return $return;
     }
 }

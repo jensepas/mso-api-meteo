@@ -5,8 +5,8 @@ return [
         [
             'host' => env('ELASTICSEARCH_HOST'),
             'port' => env('ELASTICSEARCH_PORT'),
-            'user' => env('ELASTICSEARCH_USER'),
-            'pass' => env('ELASTICSEARCH_PASS'),
+            'user' => env('ELASTICSEARCH_USERNAME'),
+            'pass' => env('ELASTICSEARCH_PASSWORD'),
         ],
     ],
 ];

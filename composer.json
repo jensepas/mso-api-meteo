@@ -1,33 +1,25 @@
 {
-    "name": "api/v2",
+    "name": "laravel/laravel",
     "type": "project",
-    "description": "mso-api-meteo.",
-    "keywords": ["framework", "laravel"],
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
         "php": "^8.3",
         "elasticsearch/elasticsearch": "^8.6",
         "guzzlehttp/guzzle": "^7.2",
-        "laravel/framework": "^11.0",
-        "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.7",
-        "matanyadaev/laravel-eloquent-spatial": "^4.2"
+        "laravel/framework": "^11.9",
+        "laravel/tinker": "^2.9",
+        "matanyadaev/laravel-eloquent-spatial": "^4.2",
+        "ext-pdo": "*"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.9.1",
-        "infection/codeception-adapter": "^0.4.2",
-        "infection/infection": "*",
-        "laravel/pint": "^1.0",
-        "mockery/mockery": "^1.4.4",
-        "nunomaduro/collision": "^v8.1",
-        "phan/phan": "*",
-        "phpmd/phpmd": "*",
-        "phpstan/phpstan": "*",
-        "phpunit/phpunit": "*",
-        "rector/rector": "^0.18.4",
-        "spatie/laravel-ignition": "^2.1.0",
-        "squizlabs/php_codesniffer": "*",
-        "vimeo/psalm": "*"
+        "fakerphp/faker": "^1.23",
+        "laravel/pint": "^1.13",
+        "laravel/sail": "^1.26",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.0",
+        "phpunit/phpunit": "^11.0.1"
     },
     "autoload": {
         "psr-4": {
@@ -53,33 +45,9 @@
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
         "post-create-project-cmd": [
-            "@php artisan key:generate --ansi"
-        ],
-        "serve": "php -S localhost:8000 index.php",
-        "test": "vendor/bin/phpunit -c ./quality/phpunit.xml.dist",
-        "testdox": "@test --testdox",
-        "test-xdebug": "XDEBUG_MODE=coverage vendor/bin/phpunit -c ./quality/phpunit.xml.dist",
-        "coverage-html": "@test-xdebug --coverage-html ./doc",
-        "coverage-xml": "@test-xdebug --coverage-clover ./tmp/coverage.xml",
-        "quality:clean": "vendor/bin/phpcbf --standard=./quality/phpcs.xml.dist",
-        "quality:refactor": "vendor/bin/rector process --config ./quality/rector.php",
-        "quality:refactor-dry": "vendor/bin/rector process --config ./quality/rector.php --dry-run",
-        "quality:phpcs": "vendor/bin/phpcs --standard=./quality/phpcs.xml.dist",
-        "quality:phpstan": "vendor/bin/phpstan analyze -c ./quality/phpstan.neon.dist",
-        "quality:psalm": "vendor/bin/psalm --no-cache --config ./quality/psalm.xml.dist",
-        "quality:phan": "vendor/bin/phan --config-file ./quality/phan.php",
-        "quality:phan-silent": "vendor/bin/phan --no-progress-bar --config-file ./quality/phan.php",
-        "quality:infection": "vendor/bin/infection --configuration=./quality/infection.json.dist",
-        "quality:phpmd": "vendor/bin/phpmd app/,tests/ text quality/phpmd.xml.dist",
-        "fulltest": [
-            "@test",
-            "@quality:infection",
-            "@quality:phpcs",
-            "@quality:phpmd",
-            "@quality:phpstan",
-            "@quality:psalm",
-            "@quality:phan",
-            "echo 'OK'"
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi"
         ]
     },
     "extra": {
@@ -87,34 +55,15 @@
             "dont-discover": []
         }
     },
-    "scripts-descriptions": {
-        "serve": "Run a local web server",
-        "test": "Run unit tests",
-        "testdox": "Run unit tests with testdox output",
-        "test-xdebug": "Run unit tests with Xdebug enabled",
-        "coverage-html": "Generate HTML code coverage report",
-        "coverage-xml": "Generate XML code coverage report",
-        "quality:clean": "Clean code with PHP Code Beautifier and Fixer",
-        "quality:refactor": "Refactor code with Rector",
-        "quality:refactor-dry": "Dry-run Rector",
-        "quality:phpcs": "Run PHP Code Sniffer",
-        "quality:phpstan": "Run PHPStan",
-        "quality:psalm": "Run Psalm",
-        "quality:phan": "Run Phan",
-        "quality:phan-silent": "Run Phan without progress bar",
-        "quality:infection": "Run Infection",
-        "quality:phpmd": "Run PHP Mess Detector",
-        "fulltest": "Run all tests"
-    },
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {
-            "php-http/discovery": true,
-            "infection/extension-installer": true
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
