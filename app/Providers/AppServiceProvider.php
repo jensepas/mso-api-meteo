@@ -15,7 +15,6 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(
             Client::class, function () {
-
                 return ClientBuilder::create()
                     ->setHosts([env('ELASTICSEARCH_HOST')])
                     ->setBasicAuthentication(env('ELASTICSEARCH_USERNAME'), env('ELASTICSEARCH_PASSWORD'))

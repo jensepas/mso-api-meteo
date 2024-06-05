@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use DateTime;
@@ -26,6 +26,7 @@ class ApiController extends Controller
      */
     public function store(Client $client, Request $request): JsonResponse
     {
+
         $params = json_decode($request->getContent(), true);
         $return = [];
         $return['error'] = 'ERROR_00025';
@@ -33,11 +34,13 @@ class ApiController extends Controller
 
         if (! empty($params)) {
             $apiKey = $params[0]['apikey'];
+
             $row = DB::table('sensor')
                 ->select('label', 'is_published')
                 ->selectRaw('ST_X(coordinates) as longitude')
                 ->selectRaw('ST_Y(coordinates) as latitude')
                 ->where('token', $apiKey)->first();
+
             if (! empty($row)) {
                 $index = env('ELASTICSEARCH_INDEX');
 
@@ -91,7 +94,6 @@ class ApiController extends Controller
         return response()->json($return);
     }
 
-
     /**
      * Display the specified resource.
      *
@@ -99,6 +101,7 @@ class ApiController extends Controller
      */
     public function show(Client $client, Request $request): JsonResponse
     {
+
         $paramsRequest = $this->initializeParamsRequest();
 
         $this->addApiKeyFilter($paramsRequest, $request->apikey);
@@ -126,22 +129,22 @@ class ApiController extends Controller
                     'bool' => [
                         'must' => [],
                         'filter' => [],
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ];
     }
 
     private function addApiKeyFilter(array &$paramsRequest, $apiKey): void
     {
-        if (!empty($apiKey)) {
+        if (! empty($apiKey)) {
             $paramsRequest['body']['query']['bool']['must'][]['match']['apiKey'] = $apiKey;
         }
     }
 
     private function addLocationFilter(array &$paramsRequest, $location): void
     {
-        if (!empty($location)) {
+        if (! empty($location)) {
             $locationParts = explode(',', $location);
             $locationTopLeft = ['lat' => $locationParts[0], 'lon' => $locationParts[1]];
             $locationBottomRight = ['lat' => $locationParts[2], 'lon' => $locationParts[3]];
@@ -173,8 +176,8 @@ class ApiController extends Controller
             'sort' => [
                 'timestamp' => [
                     'order' => 'desc',
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
@@ -184,7 +187,7 @@ class ApiController extends Controller
 
         $paramsRequest['body']['query']['bool']['filter'][]['range']['timestamp']['lte'] = $endDate;
 
-        if (!empty($start)) {
+        if (! empty($start)) {
             $paramsRequest['body']['query']['bool']['filter'][]['range']['timestamp']['gte'] = $start;
         }
     }
@@ -204,7 +207,7 @@ class ApiController extends Controller
     {
         $return = [];
 
-        if (!empty($maps)) {
+        if (! empty($maps)) {
             foreach ($esReturn['aggregations']['map_bounds']['buckets'] as $hit) {
                 $return[] = $hit['by_top_hit']['hits']['hits'][0]['_source'];
             }
