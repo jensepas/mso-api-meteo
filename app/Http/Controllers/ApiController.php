@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use DateTime;
 use Elastic\Elasticsearch\Client;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class ApiController extends Controller
+class ApiController
 {
     /**
      * Display a listing of the resource.
@@ -22,7 +22,7 @@ class ApiController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function store(Client $client, Request $request): JsonResponse
     {
@@ -97,7 +97,7 @@ class ApiController extends Controller
     /**
      * Display the specified resource.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function show(Client $client, Request $request): JsonResponse
     {
