@@ -62,6 +62,19 @@ class ElasticsearchEnrichIndex extends Command
                         $this->getOutdoorMeasurements()
                     )
                 );
+
+                $params['body'] = array_merge(
+                    $params['body'],
+                    $this->prepareBulkData(
+                        $index,
+                        'KEY_INT1',
+                        $date,
+                        'Capteur extérieur 2',
+                        [48.767064, 1.90678],
+                        $this->getOutdoorMeasurements()
+                    )
+                );
+
                 $params['body'] = array_merge(
                     $params['body'],
                     $this->prepareBulkData(
